@@ -12,8 +12,29 @@ from sklearn.cross_validation import train_test_split
 from scipy.sparse import csr_matrix
 import nimfa as nf
 
-def get_error( trueRating, predRating, W ):            #Computes error for the training dataset
-    return np.sum( np.square(trueRating - np.multiply(predRating,W)) )
+def get_train_error( trueRating, predRating, W, rmse=False ):            #Computes error for the training dataset
+    
+    ss = np.sum( np.square(trueRating - np.multiply(predRating,W)) )
+    if rmse==True:
+        return np.sqrt(ss/np.sum(W))
+    else:
+        return ss
+
+def get_test_error( testData, predRating, rmse=False ):
+    
+    ss=[]
+    
+    for i in range(len(testData)):
+        error = testData.iloc[i]['rating'] - predRating[ testData.iloc[i]['userID']-1 , testData.iloc[i]['movieID']-1 ]
+        ss.append(error**2)
+    ss = np.sum(ss)
+    
+    if rmse==True:
+        return np.sqrt( ss/len(testData) )
+    else:
+        return ss
+    
+
 
 
 #%%############## IMPORTING THE DATASETS ###################
@@ -62,7 +83,7 @@ sparseR = csr_matrix(R)
 #%%################################################################
 
 ## ALS implementation using NIMFA package
-als =  nf.Lsnmf(sparseR,seed="random_vcol",rank=30,max_iter=8,beta=0.1)            #Try using different rank (#of features) and see the reduction in training error
+als =  nf.Lsnmf(sparseR,seed="random_vcol",rank=100,max_iter=15,beta=0.1)            #Try using different rank (#of features) and see the reduction in training error
 als_fit= als.factorize()
 
 
@@ -71,5 +92,9 @@ user_features = als_fit.basis()
 movie_features = als_fit.coef()
 predictedR = np.dot( user_features.todense() , movie_features.todense() )
 
-get_error(R,predictedR,W)
+get_train_error(R,predictedR,W,rmse=True)
+#%%
+get_test_error( test,predictedR,rmse=True )
+#%%
+
 
