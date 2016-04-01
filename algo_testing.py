@@ -5,10 +5,13 @@ def get_error(Q, X, Y, W):
     TEMP=TEMP/np.sum(W)
     TEMP=TEMP**0.5
     return TEMP
-
+#change high value to get more size.
+X_gen=np.random.randint(1,high=500,size=(10,5))
+Y_gen=np.random.randint(1,high=500,size=(5,20))
+'''
 X_gen=np.loadtxt('X_gen.txt')
 Y_gen=np.loadtxt('Y_gen.txt')
-
+'''
 Q=np.dot(X_gen,Y_gen)
 W=Q>0.5
 W[W==True] = 1
@@ -42,5 +45,8 @@ print(X_gen)
 print('-'*100)
 print(Y)
 print(Y_gen)
+
+np.savetxt('X_gen.txt',X_gen)
+np.savetxt('Y_gen.txt',Y_gen)
 
 
