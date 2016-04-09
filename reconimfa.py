@@ -7,12 +7,12 @@ import nimfa as nf
 
 
 user_colnames=['userid','movieid','rating','timestamp']
-data=pd.read_table(r'C:\Anaconda2\data\ml-100k\u.data',header=None,names=user_colnames)
+data=pd.read_table(r'/home/satvik/Analytics/Recommender Project/ml-100k/u.data',header=None,names=user_colnames)
 #print data.head()
 
 item_colnames=['movieid','movietitle','releasedate','videorelesaedate','IMDB URL','unknown','Action','Adventure','Animation','Childrens','Comedy','Crime',
                 'Documentary','Drame','Fantasy','Film-Noir','Horror','Musical','Mystery','Romance','Sci-fi','Thriller','War','Western']
-item=pd.read_table(r'C:\Anaconda2\data\ml-100k\u.item',sep='|',header=None,names=item_colnames)
+item=pd.read_table(r'/home/satvik/Analytics/Recommender Project/ml-100k/u.item',sep='|',header=None,names=item_colnames)
 #print item.head()
 
 movie_titles=item.movietitle.tolist()

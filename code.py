@@ -33,11 +33,16 @@ def get_test_error( testData, predRating, rmse=False ):
         return np.sqrt( ss/len(testData) )
     else:
         return ss
-    
-
-
-
-#%%############## IMPORTING THE DATASETS ###################
+#%%
+def createDataFrame(ratingsDat,itemDat,userDat):#,R): #to create DataFrame for randomForest
+    D = pd.merge(ratingsDat,itemDat,on="movieID")
+    D = pd.merge(D,userDat,on="userID")
+    D['ALS']=0
+    D = D.drop(D.ix[:,['movie title','video release date','IMDb URL']].head(0).columns,axis=1)
+    #D['ALS'] = R[D.loc[:,'userID']-1 , D.loc[:,'movieID']-1]
+    D.to_csv('DataFrame.csv')        #saving
+    #print D
+#%%############ IMPORTING THE DATASETS ###################
 
 os.chdir("/home/rsk/Documents/RecommenderProject/")
 ratingsDat = pd.read_table("ml-100k/u.data",sep="\t",header=None)
@@ -58,6 +63,7 @@ userDat = pd.read_table("ml-100k/u.user",sep="|",header=None)
 userDat.columns = ['userID','age','gender','occupation','zipcode']
 
 train,test = train_test_split(ratingsDat,test_size=0.2,random_state=1)
+#print ratingsDat
 
 
 #%%##########  CREATING RATINGS MATRIX ###########################
@@ -90,6 +96,7 @@ als_fit= als.factorize()
 #%%
 user_features = als_fit.basis()
 movie_features = als_fit.coef()
+print user_features.todense()[1:10][1:10]
 predictedR = np.dot( user_features.todense() , movie_features.todense() )
 
 get_train_error(R,predictedR,W,rmse=True)

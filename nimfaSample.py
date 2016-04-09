@@ -1,6 +1,6 @@
 """
 Created on Sat Apr 2 01:35:15 2016
-Using zeros for empty values, when using my created random matrice, Xnew and Ynew are partially sparse, rmse ~3
+Using zeros for empty values, when using my created random matrice, Xnew and Ynew are ok, rmse ~3
 when using sample matrice provided by ganesh, Xnew is compltely zero
 @author: satvikk
 """
@@ -11,6 +11,11 @@ from scipy.sparse import csr_matrix
 def rmse(M):
 	M=np.power(M,2)
 	M=np.sum(M)/(np.shape(M)[0]*np.shape(M)[1])
+	M=np.sqrt(M)
+	return M
+def rmseQ(M,T):
+	M=np.power(M,2)
+	M=np.sum(M[T])/np.sum(T)
 	M=np.sqrt(M)
 	return M
 
@@ -24,7 +29,7 @@ Y = (Y*5).astype(int) +1
 #print X 
 #print Y
 T = np.random.rand(10,20)
-T = T>0.3
+T = T>0.9
 Q = (np.dot(X,Y)).astype(float)		#matice is 30% sparse
 Q[T==False] = 0
 #print Q
@@ -32,7 +37,7 @@ Q[T==False] = 0
 #print Q[T]
 sparseQ = csr_matrix(Q)
 
-L =  nf.Lsnmf(sparseQ,seed="random_vcol",rank=5,max_iter=10,beta=0.1) 
+L =  nf.Snmf(sparseQ,seed="random_vcol",rank=5,max_iter=50) 
 Lmod = L.factorize()
 Xnew = L.basis().todense()
 Ynew = L.coef().todense()
@@ -40,10 +45,14 @@ Qnew = L.fitted().todense()
 Qx = Q - Qnew
 Xx = X - Xnew
 Yx = Y - Ynew
-print rmse(Xx)
 print X
-print Xnew
-print Qnew
+print Y
+print Ynew.astype(int)
+print Xnew.astype(int)
+print Qx.astype(int)
+print rmseQ(Qx,T)
+print Qx[T]
+print np.sum(Q[T])/np.sum(T)
 #print Qnew[T]- Q[T]
 #print rmse(Xnew-X)
 #print rmse(Ynew-Y)

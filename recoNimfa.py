@@ -8,6 +8,7 @@
 import numpy as np
 from nimfa import lsnmf
 import nimfa
+warnings.filterwarnings('ignore')
 
 file = open('./ml-1m/ratings.dat','r')
 M = [np.nan]*(6040*3952)
