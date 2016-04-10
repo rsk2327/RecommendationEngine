@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cross_validation import train_test_split
 from scipy.sparse import csr_matrix
+import scipy.cluster.vq
 import nimfa as nf
 
 def get_train_error( trueRating, predRating, W, rmse=False ):            #Computes error for the training dataset
@@ -42,7 +43,15 @@ def createDataFrame(ratingsDat,itemDat,userDat):#,R): #to create DataFrame for r
     #D['ALS'] = R[D.loc[:,'userID']-1 , D.loc[:,'movieID']-1]
     D.to_csv('DataFrame.csv')        #saving
     #print D
-#%%############ IMPORTING THE DATASETS ###################
+#%%
+def movieKMeans(itemDat):#to reduce the total number of movie features
+    num_clusters =7
+    D = itemDat.loc[:,'Action':].values
+    D = scipy.cluster.vq.whiten(D)#feature-scale
+    centroids,distortion = scipy.cluster.vq.kmeans(D,num_clusters)#
+    idx,_=scipy.cluster.vq.vq(D,centroids)#each movie is in a cluster
+    print idx
+############# IMPORTING THE DATASETS ###################
 
 os.chdir("/home/rsk/Documents/RecommenderProject/")
 ratingsDat = pd.read_table("ml-100k/u.data",sep="\t",header=None)
@@ -65,7 +74,7 @@ userDat.columns = ['userID','age','gender','occupation','zipcode']
 train,test = train_test_split(ratingsDat,test_size=0.2,random_state=1)
 #print ratingsDat
 
-
+#movieKMeans(itemDat)
 #%%##########  CREATING RATINGS MATRIX ###########################
 
 
