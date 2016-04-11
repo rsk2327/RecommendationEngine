@@ -43,14 +43,14 @@ def createDataFrame(ratingsDat,itemDat,userDat):#,R): #to create DataFrame for r
     #D['ALS'] = R[D.loc[:,'userID']-1 , D.loc[:,'movieID']-1]
     D.to_csv('DataFrame.csv')        #saving
     #print D
-#%%
+#
 def movieKMeans(itemDat):#to reduce the total number of movie features
     num_clusters =7
     D = itemDat.loc[:,'Action':].values
     D = scipy.cluster.vq.whiten(D)#feature-scale
     centroids,distortion = scipy.cluster.vq.kmeans(D,num_clusters)#
     idx,_=scipy.cluster.vq.vq(D,centroids)#each movie is in a cluster
-    print idx
+    return idx
 #%%
 def ALS_algo(R,W,n_factors=8,lambda_=10,n_iterations=10):
     Q=R
@@ -75,8 +75,8 @@ def ALS_algo(R,W,n_factors=8,lambda_=10,n_iterations=10):
         print('Saved.')
     weighted_Q_hat = np.dot(X,Y)
     return weighted_Q_hat,X,Y
-#%%
-############# IMPORTING THE DATASETS ###################
+#
+#%%############# IMPORTING THE DATASETS ###################
 
 os.chdir("/home/rsk/Documents/RecommenderProject/")
 ratingsDat = pd.read_table("ml-100k/u.data",sep="\t",header=None)
@@ -98,7 +98,9 @@ userDat.columns = ['userID','age','gender','occupation','zipcode']
 
 train,test = train_test_split(ratingsDat,test_size=0.2,random_state=1)
 #print ratingsDat
-
+itemDat['cluster'] = movieKMeans(itemDat)
+itemDat['cluster'] = itemDat['cluster'].astype('category')
+#createDataFrame(ratingsDat,itemDat,userDat)
 #movieKMeans(itemDat)
 #%%##########  CREATING RATINGS MATRIX ###########################
 
