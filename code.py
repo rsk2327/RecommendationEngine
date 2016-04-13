@@ -43,14 +43,29 @@ def createDataFrame(ratingsDat,itemDat,userDat):#,R): #to create DataFrame for r
     #D['ALS'] = R[D.loc[:,'userID']-1 , D.loc[:,'movieID']-1]
     D.to_csv('DataFrame.csv')        #saving
     #print D
-#
-def movieKMeans(itemDat):#to reduce the total number of movie features
-    num_clusters =7
-    D = itemDat.loc[:,'Action':].values
-    D = scipy.cluster.vq.whiten(D)#feature-scale
+#%%
+def movieKMeans():#to reduce the total number of movie features
+    #np.set_printoptions(threshold=10)
+    os.chdir("/home/satvik/Analytics/Recommender Project")
+    itemDat = pd.read_table("ml-100k/u.item",sep="|",header=None)
+    itemDat.columns = ['movieID', 'movie title' , 'release date' , 'video release date' ,
+              'IMDb URL' , 'unknown' , 'Action' , 'Adventure' , 'Animation' ,
+              'Childrens' , 'Comedy' , 'Crime' , 'Documentary' , 'Drama' , 'Fantasy' ,
+             ' Film-Noir' , 'Horror' , 'Musical' , 'Mystery' , 'Romance' , 'Sci-Fi' ,
+              'Thriller' , 'War' , 'Western']
+    #D = scipy.cluster.vq.whiten(D)#feature-scale
+    num_clusters =3
+    D = itemDat.loc[:,'Action':'Western'].values
     centroids,distortion = scipy.cluster.vq.kmeans(D,num_clusters)#
     idx,_=scipy.cluster.vq.vq(D,centroids)#each movie is in a cluster
+    plt.hist(idx,bins=num_clusters)
+    plt.title("Cluster Densities")
+    plt.xlabel("Cluster Number")
+    plt.ylabel("No. Movies")
+    plt.show()
+    #print idx
     return idx
+movieKMeans()
 #%%
 def ALS_algo(R,W,n_factors=8,lambda_=10,n_iterations=10):
     Q=R
@@ -76,9 +91,9 @@ def ALS_algo(R,W,n_factors=8,lambda_=10,n_iterations=10):
     weighted_Q_hat = np.dot(X,Y)
     return weighted_Q_hat,X,Y
 #
-#%%############# IMPORTING THE DATASETS ###################
+############## IMPORTING THE DATASETS ###################
 
-os.chdir("/home/rsk/Documents/RecommenderProject/")
+os.chdir("/home/satvik/Analytics/Recommender Project")
 ratingsDat = pd.read_table("ml-100k/u.data",sep="\t",header=None)
 ratingsDat.columns=['userID','movieID','rating','timestamp']
 ratingsDat['userID'] = ratingsDat['userID'].astype("category")            #converting into categorical variables
@@ -98,9 +113,8 @@ userDat.columns = ['userID','age','gender','occupation','zipcode']
 
 train,test = train_test_split(ratingsDat,test_size=0.2,random_state=1)
 #print ratingsDat
-itemDat['cluster'] = movieKMeans(itemDat)
-itemDat['cluster'] = itemDat['cluster'].astype('category')
-#createDataFrame(ratingsDat,itemDat,userDat)
+#itemDat['cluster'] = movieKMeans(itemDat)
+#itemDat['cluster'] = itemDat['cluster'].astype('category')
 #movieKMeans(itemDat)
 #%%##########  CREATING RATINGS MATRIX ###########################
 
