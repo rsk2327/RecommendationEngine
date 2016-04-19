@@ -43,7 +43,7 @@ def createDataFrame(ratingsDat,itemDat,userDat,als):#,R): #to create DataFrame f
     #D['ALS'] = R[D.loc[:,'userID']-1 , D.loc[:,'movieID']-1]
     D.to_csv('DataFrame.csv')        #saving
     train,test=train_test_split(D,)
-    alsfunc()
+    #alsfunc()
     #print D
 #%%
 def movieKMeans():#to reduce the total number of movie features
@@ -150,5 +150,3 @@ get_train_error(R,predictedR,W,rmse=True)
 #%%
 get_test_error( test,predictedR,rmse=True )
 #%%
-aa,_,_ = ALS_algo(R,W, n_factors=100,lambda_=10,n_iterations=20)
-createDataFrame(ratingsDat,itemDat,userDat,aa)
