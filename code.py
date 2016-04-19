@@ -35,13 +35,15 @@ def get_test_error( testData, predRating, rmse=False ):
     else:
         return ss
 #%%
-def createDataFrame(ratingsDat,itemDat,userDat):#,R): #to create DataFrame for randomForest
+def createDataFrame(ratingsDat,itemDat,userDat,als):#,R): #to create DataFrame for randomForest
     D = pd.merge(ratingsDat,itemDat,on="movieID")
     D = pd.merge(D,userDat,on="userID")
     D['ALS']=0
     D = D.drop(D.ix[:,['movie title','video release date','IMDb URL']].head(0).columns,axis=1)
     #D['ALS'] = R[D.loc[:,'userID']-1 , D.loc[:,'movieID']-1]
     D.to_csv('DataFrame.csv')        #saving
+    train,test=train_test_split(D,)
+    alsfunc()
     #print D
 #%%
 def movieKMeans():#to reduce the total number of movie features
@@ -58,11 +60,6 @@ def movieKMeans():#to reduce the total number of movie features
     D = itemDat.loc[:,'Action':'Western'].values
     centroids,distortion = scipy.cluster.vq.kmeans(D,num_clusters)#
     idx,_=scipy.cluster.vq.vq(D,centroids)#each movie is in a cluster
-    plt.hist(idx,bins=num_clusters)
-    plt.title("Cluster Densities")
-    plt.xlabel("Cluster Number")
-    plt.ylabel("No. Movies")
-    plt.show()
     #print idx
     return idx
 movieKMeans()
@@ -153,3 +150,5 @@ get_train_error(R,predictedR,W,rmse=True)
 #%%
 get_test_error( test,predictedR,rmse=True )
 #%%
+aa,_,_ = ALS_algo(R,W, n_factors=100,lambda_=10,n_iterations=20)
+createDataFrame(ratingsDat,itemDat,userDat,aa)

@@ -17,7 +17,7 @@ D = itemDat.loc[:,'Action':'Western'].values
 #D = scipy.cluster.vq.whiten(D)#feature-scale
 #%% Plot Cost vs num_clusters
 distortion =[]
-for num_clusters in range(2,5):
+for num_clusters in range(2,10):
     distortion.append(scipy.cluster.vq.kmeans(D,num_clusters,iter=1000)[1])
     #idx,_=scipy.cluster.vq.vq(D,centroids)#each movie is in a cluster
 print distortion
@@ -31,11 +31,30 @@ num_clusters=5
 centroids,distortion=scipy.cluster.vq.kmeans(D,num_clusters,iter=100)
 idx,_=scipy.cluster.vq.vq(D,centroids)#each movie is in a cluster
 plt.hist(idx,bins=num_clusters)
-plt.title("Cluster Densities, for 5 clusters")
+plt.title("Cluster Densities, for "+str(num_clusters)+" clusters")
 plt.xlabel("Cluster Number")
 plt.ylabel("No. Movies")
 plt.show()
 print idx
+u = np.zeros((num_clusters,18))
+for i in range(num_clusters):
+    T = idx==i
+    E=D[T,:]
+    E = np.sum(E,axis=0)
+    u[i,:]=E
+u=u.astype(int)
+print u
+
+#%% Bar charts of individual clusters to movie features
+l=len(itemDat.columns)
+for i in range(0,num_clusters):
+    plt.figure()
+    print len(u[i,:])
+    plt.bar(np.arange(18),u[i,:])
+    plt.title("CLuster"+str(i))
+    plt.xlabel("Movie feature")
+    plt.ylabel("No. Movies")
+    plt.show()
 
 #%% Generate Covariance matrix of feature vs feature for different clusters 
 num_clusters=6
