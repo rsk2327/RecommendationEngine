@@ -12,7 +12,7 @@ from sklearn.cross_validation import train_test_split
 from scipy.sparse import csr_matrix
 import scipy.cluster.vq
 #import nimfa as nf
-
+#%%
 def get_train_error(trueRating, predRating, W, rmse=False):            #Computes error for the training dataset
     
     ss = np.sum( np.square(trueRating - np.multiply(predRating,W)) )
@@ -20,7 +20,7 @@ def get_train_error(trueRating, predRating, W, rmse=False):            #Computes
         return np.sqrt(ss/np.sum(W))
     else:
         return ss
-#%%
+
 def get_test_error( testData, predRating, rmse=False ):
     
     ss=[]
@@ -40,9 +40,32 @@ def createDataFrame(ratingsDat,itemDat,userDat,predictedR): #to create DataFrame
     D = pd.merge(D,userDat,on="userID")
     D = D.drop(D.ix[:,['movie title','video release date','IMDb URL']].head(0).columns,axis=1)
     D['ALS'] = predictedR[D.loc[:,'userID']-1 , D.loc[:,'movieID']-1]
+    y = lambda x: x.split('-')[0]
+    D['release day'] = D['release date'].apply(y)
+    y = lambda x: x.split('-')[1]
+    D['release month']=D['release date'].apply(y)
+    y = lambda x: x.split('-')[2]
+    D['release year']=D['release date'].apply(y)
     D.to_csv('combinedData.csv')        #saving
     #train,test=train_test_split(D,)
     #print D
+def appendDataFrame():#creating columns for release dates
+    D = pd.read_csv("combinedData.csv")
+    y = lambda x: len(str(x).split('-'))
+    D['g'] = D['release date'].apply(y) #found rows with invalid release date and dropped them
+    E =  D[D['g']==1].index#movie 267 is a bad data and should be removed from the system
+    D.drop(D.index[[1711, 4776, 17957, 20011, 21645, 32870, 34295, 42528, 53849]],inplace=True)
+    y = lambda x: str(x).split('-')[0]
+    D['release day']=D['release date'].apply(y) 
+    
+    months={'Jan':1,'Feb':2,'Mar':3,'Apr':4,'May':5,'Jun':6,'Jul':7,'Aug':8,'Sep':9,'Oct':10,'Nov':11,'Dec':12}
+    y = lambda x: months[str(x).split('-')[1]]
+    D['release month']=D['release date'].apply(y)
+    y = lambda x: str(x).split('-')[2]
+    D['release year']=D['release date'].apply(y)
+    D.to_csv('combinedData.csv')        #saving
+os.chdir("/home/satvik/Analytics/Recommender Project/RecommendationEngine")
+appendDataFrame()
 #%%
 def movieKMeans(itemDat):#to reduce the total number of movie features
     #np.set_printoptions(threshold=10)
@@ -84,12 +107,12 @@ def ALS_algo(R,W,n_factors=8,lambda_=10,n_iterations=10):
         # print('Saved.')
     weighted_Q_hat = np.dot(X,Y)
     return weighted_Q_hat,X,Y
-#%%
 
 
-############## IMPORTING THE DATASETS ###################
+
+#%%############# IMPORTING THE DATASETS ###################
 print ('Importing data...')
-os.chdir("C://Users/Ganesh Anand/Desktop/Recommendation Engine")
+os.chdir("/home/satvik/Analytics/Recommender Project")
 ratingsDat = pd.read_table("ml-100k/u.data",sep="\t",header=None)
 ratingsDat.columns=['userID','movieID','rating','timestamp']
 ratingsDat['userID'] = ratingsDat['userID'].astype("category")            #converting into categorical variables
@@ -118,11 +141,11 @@ print ('Done clustering.')
 
 num_users = len(ratingsDat['userID'].cat.categories)
 num_movies = len(ratingsDat['movieID'].cat.categories)
-#%%##########  CREATING RATINGS MATRIX ###########################
+###########  CREATING RATINGS MATRIX ###########################
 #Creating ratings matrix R and weight matrix W. 
 # R : Ratings matrix (only has ratings from the train dataset)
 # W : Keep check of which cells have ratings
-
+#%%
 print ('Making Ratings and Weight matrix...')
 R = np.zeros((num_users,num_movies))
 W = np.zeros((num_users,num_movies))  
@@ -146,9 +169,9 @@ predictedR,X,Y=ALS_algo(R,W,n_factors=8,lambda_=10,n_iterations=10)
 # print user_features.todense()[1:10][1:10]
 # predictedR = np.dot( user_features.todense() , movie_features.todense() )
 print ('ALS done.')
-
-train_err = get_train_error(R,predictedR,W,rmse=True)
 #%%
+train_err = get_train_error(R,predictedR,W,rmse=True)
+#
 test_err = get_test_error(test,predictedR,rmse=True)
 #%%
 

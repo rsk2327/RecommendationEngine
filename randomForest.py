@@ -28,15 +28,30 @@ for variable in categorical_variables:
 train,test = train_test_split(X,test_size=0.2,random_state=1)
 ytrain = train.pop('rating')
 ytest = test.pop('rating')
+print train.columns
 
 print('Done building variables.\nBuilding model...')
+"""features = ['ALS','unknown','Action','Adventure','Animation','Childrens','Comedy','Crime','Documentary'
+           ,'Drama','Fantasy',' Film-Noir','Horror','Musical','Mystery'
+           ,'Romance','Sci-Fi','Thriller','War','Western','cluster'
+           ,'age', u'gender_F', u'gender_M',u'gender_F', u'gender_M',
+       u'occupation_administrator', u'occupation_artist', u'occupation_doctor',
+       u'occupation_educator', u'occupation_engineer',
+       u'occupation_entertainment', u'occupation_executive',
+       u'occupation_healthcare', u'occupation_homemaker', u'occupation_lawyer',
+       u'occupation_librarian', u'occupation_marketing', u'occupation_none',
+       u'occupation_other', u'occupation_programmer', u'occupation_retired',
+       u'occupation_salesman', u'occupation_scientist', u'occupation_student',
+       u'occupation_technician', u'occupation_writer']
+"""
+features = ['ALS','userID']
 model = RandomForestRegressor(100, oob_score=True, random_state=42, n_jobs=-1)
-model.fit(train,ytrain)
+model.fit(train[features],ytrain)
 print('Model built.\nRunning benchmarks...')
-r2 = r2_score(ytest, model.predict(test))
-rmse = np.sqrt(np.mean((ytest - model.predict(test))**2))
+r2 = r2_score(ytest, model.predict(test[features]))
+rmse = np.sqrt(np.mean((ytest - model.predict(test[features]))**2))
 
-feature_importances = pd.Series(model.feature_importances_,index=train.columns)
+feature_importances = pd.Series(model.feature_importances_,index=train[features].columns)
 feature_importances.sort(ascending=False)
 few_features = feature_importances[0:12]
 few_features.plot(kind="barh",figsize=(7,6))
