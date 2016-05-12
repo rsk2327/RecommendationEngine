@@ -35,7 +35,7 @@ def get_test_error( testData, predRating, rmse=False ):
     else:
         return ss
 #%%
-def createDataFrame(ratingsDat,itemDat,userDat,predictedR): #to create DataFrame for randomForest
+def createDataFrame(ratingsDat,itemDat,userDat,predictedR,X,Y): #to create DataFrame for randomForest
     D = pd.merge(ratingsDat,itemDat,on="movieID")
     D = pd.merge(D,userDat,on="userID")
     D = D.drop(D.ix[:,['movie title','video release date','IMDb URL']].head(0).columns,axis=1)
@@ -46,6 +46,12 @@ def createDataFrame(ratingsDat,itemDat,userDat,predictedR): #to create DataFrame
     D['release month']=D['release date'].apply(y)
     y = lambda x: x.split('-')[2]
     D['release year']=D['release date'].apply(y)
+    for i in range(len(np.transpose(X))):
+    	colname = "UserFeature{}".format(i)
+    	D[colname] = X[D.loc[:,'userID']-1 , i]
+    for i in range(len(Y)):
+    	colname = "MovieFeature{}".format(i)
+    	D[colname] = Y[i , D.loc[:,'movieID']-1]
     D.to_csv('combinedData.csv')        #saving
     #train,test=train_test_split(D,)
     #print D
@@ -158,6 +164,7 @@ print ('Matrices created.')
 
 print ('Running ALS...')
 predictedR,X,Y=ALS_algo(R,W,n_factors=8,lambda_=10,n_iterations=10)
+# increase the n_iterations and n_factors?
 # sparseR = csr_matrix(R)    
 # #%%################################################################
 # ## ALS implementation using NIMFA package
@@ -176,5 +183,5 @@ test_err = get_test_error(test,predictedR,rmse=True)
 #%%
 
 print ('Saving combined dataframe for random forest...')
-createDataFrame(ratingsDat,itemDat,userDat,predictedR)
+createDataFrame(ratingsDat,itemDat,userDat,predictedR,X,Y)
 print ('Data saved.')
