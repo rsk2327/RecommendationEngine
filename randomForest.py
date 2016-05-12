@@ -31,7 +31,7 @@ ytest = test.pop('rating')
 print train.columns
 
 print('Done building variables.\nBuilding model...')
-"""features = ['ALS','unknown','Action','Adventure','Animation','Childrens','Comedy','Crime','Documentary'
+features = ['ALS','unknown','Action','Adventure','Animation','Childrens','Comedy','Crime','Documentary'
            ,'Drama','Fantasy',' Film-Noir','Horror','Musical','Mystery'
            ,'Romance','Sci-Fi','Thriller','War','Western','cluster'
            ,'age', u'gender_F', u'gender_M',u'gender_F', u'gender_M',
@@ -43,8 +43,7 @@ print('Done building variables.\nBuilding model...')
        u'occupation_other', u'occupation_programmer', u'occupation_retired',
        u'occupation_salesman', u'occupation_scientist', u'occupation_student',
        u'occupation_technician', u'occupation_writer']
-"""
-features = ['ALS','userID']
+       
 model = RandomForestRegressor(100, oob_score=True, random_state=42, n_jobs=-1)
 model.fit(train[features],ytrain)
 print('Model built.\nRunning benchmarks...')

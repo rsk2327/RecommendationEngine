@@ -35,6 +35,7 @@ def get_test_error( testData, predRating, rmse=False ):
     else:
         return ss
 #%%
+import time
 def createDataFrame(ratingsDat,itemDat,userDat,predictedR,X,Y): #to create DataFrame for randomForest
     D = pd.merge(ratingsDat,itemDat,on="movieID")
     D = pd.merge(D,userDat,on="userID")
@@ -71,7 +72,13 @@ def appendDataFrame():#creating columns for release dates
     D['release year']=D['release date'].apply(y)
     D.to_csv('combinedData.csv')        #saving
 os.chdir("/home/satvik/Analytics/Recommender Project/RecommendationEngine")
-appendDataFrame()
+def timestamp():
+    D = pd.read_csv("combinedData.csv")
+    y= lambda x: time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime(x))
+    D['time']=D['timestamp'].apply(y)
+    print D['time']
+    D.to_csv('combinedData.csv')
+timestamp()
 #%%
 def movieKMeans(itemDat):#to reduce the total number of movie features
     #np.set_printoptions(threshold=10)
