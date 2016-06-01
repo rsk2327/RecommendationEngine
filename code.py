@@ -11,6 +11,11 @@ import matplotlib.pyplot as plt
 from sklearn.cross_validation import train_test_split
 from scipy.sparse import csr_matrix
 import scipy.cluster.vq
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score
+import pylab
+import time
+from ganeshALS import ALS_algo
 #import nimfa as nf
 #%%
 def get_train_error(trueRating, predRating, W, rmse=False):            #Computes error for the training dataset
@@ -35,18 +40,13 @@ def get_test_error( testData, predRating, rmse=False ):
     else:
         return ss
 #%%
-import time
+
 def createDataFrame(ratingsDat,itemDat,userDat,predictedR,X,Y): #to create DataFrame for randomForest
     D = pd.merge(ratingsDat,itemDat,on="movieID")
     D = pd.merge(D,userDat,on="userID")
     D = D.drop(D.ix[:,['movie title','video release date','IMDb URL']].head(0).columns,axis=1)
     D['ALS'] = predictedR[D.loc[:,'userID']-1 , D.loc[:,'movieID']-1]
-    y = lambda x: x.split('-')[0]
-    D['release day'] = D['release date'].apply(y)
-    y = lambda x: x.split('-')[1]
-    D['release month']=D['release date'].apply(y)
-    y = lambda x: x.split('-')[2]
-    D['release year']=D['release date'].apply(y)
+
     for i in range(len(np.transpose(X))):
     	colname = "UserFeature{}".format(i)
     	D[colname] = X[D.loc[:,'userID']-1 , i]
@@ -60,7 +60,7 @@ def appendDataFrame():#creating columns for release dates
     D = pd.read_csv("combinedData.csv")
     y = lambda x: len(str(x).split('-'))
     D['g'] = D['release date'].apply(y) #found rows with invalid release date and dropped them
-    E =  D[D['g']==1].index#movie 267 is a bad data and should be removed from the system
+    #movie 267 is a bad data and should be removed from the system
     D.drop(D.index[[1711, 4776, 17957, 20011, 21645, 32870, 34295, 42528, 53849]],inplace=True)
     y = lambda x: str(x).split('-')[0]
     D['release day']=D['release date'].apply(y) 
@@ -71,15 +71,64 @@ def appendDataFrame():#creating columns for release dates
     y = lambda x: str(x).split('-')[2]
     D['release year']=D['release date'].apply(y)
     D.to_csv('combinedData.csv')        #saving
-os.chdir("/home/satvik/Analytics/Recommender Project/RecommendationEngine")
-def timestamp():
+
+def timestamp():#adding time of rating, in human redable format
     D = pd.read_csv("combinedData.csv")
     y= lambda x: time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime(x))
     D['time']=D['timestamp'].apply(y)
     print D['time']
     D.to_csv('combinedData.csv')
-timestamp()
+
 #%%
+def RandomForest():
+    print ('Importing data...')
+    X = pd.read_csv("combinedData.csv")
+    #After checking the columns I found that the indexes for ratings were showing up here
+    X = X.drop(X.columns[0],axis=1)
+    X = X.drop(['release date','zipcode'],axis=1)
+    print ('Data imported.')
+    
+    categorical_variables = ["gender", "occupation"]
+    for variable in categorical_variables:
+        #X[variable].fillna("Missing", inplace=True)
+        dummies = pd.get_dummies(X[variable], prefix=variable)
+        X = pd.concat([X, dummies], axis=1)
+        X.drop([variable], axis=1, inplace=True)
+    
+    train,test = train_test_split(X,test_size=0.2,random_state=1)
+    ytrain = train.pop('rating')
+    ytest = test.pop('rating')
+    print train.columns
+    
+    print('Done building variables.\nBuilding model...')
+    features = ['ALS','unknown','Action','Adventure','Animation','Childrens','Comedy','Crime','Documentary'
+               ,'Drama','Fantasy',' Film-Noir','Horror','Musical','Mystery'
+               ,'Romance','Sci-Fi','Thriller','War','Western','cluster'
+               ,'age', u'gender_F', u'gender_M',u'gender_F', u'gender_M',
+           u'occupation_administrator', u'occupation_artist', u'occupation_doctor',
+           u'occupation_educator', u'occupation_engineer',
+           u'occupation_entertainment', u'occupation_executive',
+           u'occupation_healthcare', u'occupation_homemaker', u'occupation_lawyer',
+           u'occupation_librarian', u'occupation_marketing', u'occupation_none',
+           u'occupation_other', u'occupation_programmer', u'occupation_retired',
+           u'occupation_salesman', u'occupation_scientist', u'occupation_student',
+           u'occupation_technician', u'occupation_writer']
+           
+    model = RandomForestRegressor(100, oob_score=True, random_state=42, n_jobs=-1)
+    model.fit(train[features],ytrain)
+    print('Model built.\nRunning benchmarks...')
+    r2 = r2_score(ytest, model.predict(test[features]))
+    rmse = np.sqrt(np.mean((ytest - model.predict(test[features]))**2))
+    
+    feature_importances = pd.Series(model.feature_importances_,index=train[features].columns)
+    feature_importances.sort(ascending=False)
+    few_features = feature_importances[0:12]
+    few_features.plot(kind="barh",figsize=(7,6))
+    pylab.show()
+    
+    print('R2 score is {}'.format(r2))
+    print('RMSE score is {}'.format(rmse)) 
+#%%    
 def movieKMeans(itemDat):#to reduce the total number of movie features
     #np.set_printoptions(threshold=10)
     #os.chdir("/home/satvik/Analytics/Recommender Project")
@@ -97,29 +146,6 @@ def movieKMeans(itemDat):#to reduce the total number of movie features
     #print idx
     return idx
 #%%
-def ALS_algo(R,W,n_factors=8,lambda_=10,n_iterations=10):
-    Q=R
-    m, n = Q.shape
-    X = 5 * np.random.rand(m, n_factors) 
-    Y = 5 * np.random.rand(n_factors, n)
-
-    print "Starting iterations..."
-    for ii in range(n_iterations):
-        for u, Wu in enumerate(W):
-            X[u] = np.linalg.solve(np.dot(Y, np.dot(np.diag(Wu), Y.T)) + lambda_ * np.eye(n_factors),
-                                    np.dot(Y, np.dot(np.diag(Wu), Q[u].T))).T
-        for i, Wi in enumerate(W.T):
-            Y[:,i] = np.linalg.solve(np.dot(X.T, np.dot(np.diag(Wi), X)) + lambda_ * np.eye(n_factors),
-                                    np.dot(X.T, np.dot(np.diag(Wi), Q[:, i])))
-        print('{}th iteration is completed of {}'.format(ii + 1,n_iterations))
-        # TEMP=get_error(Q, X, Y, W)
-        # print('RMS Error on Training Set after {}th iteration is {}'.format(ii + 1,TEMP))
-        # print('Saving current X and Y...')
-        # np.savetxt('X.txt', X);
-        # np.savetxt('Y.txt', Y);
-        # print('Saved.')
-    weighted_Q_hat = np.dot(X,Y)
-    return weighted_Q_hat,X,Y
 
 
 
@@ -145,12 +171,6 @@ print ('Data Imported.')
 print ('Splitting data...')
 train,test = train_test_split(ratingsDat,test_size=0.2,random_state=1)
 print ('Split done.')
-# print ratingsDat
-
-print ('Clustering...')
-itemDat['cluster'] = movieKMeans(itemDat)
-itemDat['cluster'] = itemDat['cluster'].astype('category')
-print ('Done clustering.')
 
 num_users = len(ratingsDat['userID'].cat.categories)
 num_movies = len(ratingsDat['movieID'].cat.categories)
@@ -159,6 +179,7 @@ num_movies = len(ratingsDat['movieID'].cat.categories)
 # R : Ratings matrix (only has ratings from the train dataset)
 # W : Keep check of which cells have ratings
 #%%
+
 print ('Making Ratings and Weight matrix...')
 R = np.zeros((num_users,num_movies))
 W = np.zeros((num_users,num_movies))  
@@ -187,8 +208,10 @@ print ('ALS done.')
 train_err = get_train_error(R,predictedR,W,rmse=True)
 #
 test_err = get_test_error(test,predictedR,rmse=True)
-#%%
+
 
 print ('Saving combined dataframe for random forest...')
 createDataFrame(ratingsDat,itemDat,userDat,predictedR,X,Y)
+appendDataFrame()
+timestamp()
 print ('Data saved.')
