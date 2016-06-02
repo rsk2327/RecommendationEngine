@@ -129,22 +129,21 @@ def RandomForest():
     print('R2 score is {}'.format(r2))
     print('RMSE score is {}'.format(rmse)) 
 #%%    
-def movieKMeans(itemDat):#to reduce the total number of movie features
-    #np.set_printoptions(threshold=10)
-    #os.chdir("/home/satvik/Analytics/Recommender Project")
-    #itemDat = pd.read_table("ml-100k/u.item",sep="|",header=None)
-    #itemDat.columns = ['movieID', 'movie title' , 'release date' , 'video release date' ,
-    #          'IMDb URL' , 'unknown' , 'Action' , 'Adventure' , 'Animation' ,
-    #          'Childrens' , 'Comedy' , 'Crime' , 'Documentary' , 'Drama' , 'Fantasy' ,
-    #         ' Film-Noir' , 'Horror' , 'Musical' , 'Mystery' , 'Romance' , 'Sci-Fi' ,
-    #          'Thriller' , 'War' , 'Western']
-    #D = scipy.cluster.vq.whiten(D)#feature-scale
-    num_clusters =3
+def covariance():#to generate a covariance matrix
+    itemDat = pd.read_table("ml-100k/u.item",sep="|",header=None)
+    itemDat.columns = ['movieID', 'movie title' , 'release date' , 'video release date' ,
+              'IMDb URL' , 'unknown' , 'Action' , 'Adventure' , 'Animation' ,
+              'Childrens' , 'Comedy' , 'Crime' , 'Documentary' , 'Drama' , 'Fantasy' ,
+             ' Film-Noir' , 'Horror' , 'Musical' , 'Mystery' , 'Romance' , 'Sci-Fi' ,
+              'Thriller' , 'War' , 'Western']
     D = itemDat.loc[:,'Action':'Western'].values
-    centroids,distortion = scipy.cluster.vq.kmeans(D,num_clusters)#
-    idx,_=scipy.cluster.vq.vq(D,centroids)#each movie is in a cluster
+    Cov = np.cov(np.transpose(D))
+    for i in range(len(Cov)):#stripping diagonal elements as they represent pure variance
+        Cov[i,i]=0
+    np.savetxt("Covariance.txt",Cov,fmt="%+5.4f")#saving, with precision of 4 decimals
+    index = np.unravel_index(Cov.argmax(), Cov.shape)#index of max covariance
+    print Cov[index]
     #print idx
-    return idx
 #%%
 
 
