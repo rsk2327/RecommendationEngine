@@ -138,11 +138,18 @@ def covariance():#to generate a covariance matrix
               'Thriller' , 'War' , 'Western']
     D = itemDat.loc[:,'Action':'Western'].values
     Cov = np.cov(np.transpose(D))
-    for i in range(len(Cov)):#stripping diagonal elements as they represent pure variance
+    Cov = np.cov(np.transpose(D))
+    for i in range(len(Cov)):
         Cov[i,i]=0
+    Corr = np.corrcoef(np.transpose(D))
+    for i in range(len(Corr)):
+        Corr[i,i]=0
+    np.savetxt("Correlation.txt",Corr,fmt="%+5.4f")
     np.savetxt("Covariance.txt",Cov,fmt="%+5.4f")#saving, with precision of 4 decimals
-    index = np.unravel_index(Cov.argmax(), Cov.shape)#index of max covariance
+    index = np.unravel_index(Corr.argmax(), Cov.shape)    
+    index2 = np.unravel_index(Cov.argmax(), Cov.shape)#index of max covariance
     print Cov[index]
+    print Corr[index2]
     #print idx
 #%%
 
