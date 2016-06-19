@@ -3,7 +3,7 @@ import datetime
 import pandas as pd
 import numpy as np
 
-def alspostprocess(data, prediction, user_features, movie_features, n_features):
+def alspostprocess(data, prediction, user_features, movie_features, n_features=10):
     """
     Adds ALS values obtained from ALS decomposition of ratings matrix as
     feature to dataFrame.

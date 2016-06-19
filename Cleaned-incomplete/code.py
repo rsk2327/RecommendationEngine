@@ -44,13 +44,13 @@ print "ALS\nTrain RMSE : %f  Test RMSE : %f"%(trainRMSE, testRMSE)
 #%%
 
 
-data1, features = alspostprocess(data, prediction, user_features, movie_features)
+processedData, features = alspostprocess(data, prediction, user_features, movie_features,n_features=4)
 #%%
-train,test = train_test_split(data1,test_size=0.2,random_state=1)
+train,test = train_test_split(processedData,test_size=0.2,random_state=1)
 ytrain = train.pop('rating')
 ytest = test.pop('rating')
 
-########## RandomForest model #############           
+#%%########## RandomForest model #############           
 print('Training Random Forest.')
 model = RandomForestRegressor(100, oob_score=True,random_state=42, n_jobs=-1)
 model.fit(train[features],ytrain)
