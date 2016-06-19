@@ -18,7 +18,7 @@ import xgboost as xgb
 import pylab
 
 print('Importing data.')
-ratingData,movieData,userData = importData()
+ratingData,movieData,userData = importData("/home/rsk/Documents/RecommenderProject/")
 
 #%%
 #Combining the ratings data with movie and user features
@@ -34,18 +34,19 @@ data.head()
 #%%
 print('Splitting data.')    
 train,test = train_test_split(data,test_size=0.2,random_state=1)
-#%%
 test_mat, train_mat = alspreprocess(ratingData, test, train)
 #%%
 print('Running ALS.')
-prediction,user_features,movie_features = als(train_mat)
+prediction,user_features,movie_features = als(train_mat,n_factors = 8,n_iterations = 2, lambda_ = 10)
 testRMSE = RMSE_matrix(prediction, test_mat)
 trainRMSE = RMSE_matrix(prediction, train_mat)
 print "ALS\nTrain RMSE : %f  Test RMSE : %f"%(trainRMSE, testRMSE)
+#%%
 
-data, features = alspostprocess(data, prediction, user_features, movie_features)
 
-train,test = train_test_split(data,test_size=0.2,random_state=1)
+data1, features = alspostprocess(data, prediction, user_features, movie_features)
+#%%
+train,test = train_test_split(data1,test_size=0.2,random_state=1)
 ytrain = train.pop('rating')
 ytest = test.pop('rating')
 

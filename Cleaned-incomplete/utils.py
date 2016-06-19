@@ -3,7 +3,30 @@ import datetime
 import pandas as pd
 import numpy as np
 
-def alspostprocess(data, prediction, user_features, movie_features):
+def alspostprocess(data, prediction, user_features, movie_features, n_features):
+    """
+    Adds ALS values obtained from ALS decomposition of ratings matrix as
+    feature to dataFrame.
+    Also adds movie and user features obtained ALS decomposition to 
+    corresponding samples
+
+    INPUT     
+    data : DataFrame to which ALS, user_features and movie_features 
+           are to be added.
+           
+    prediction : Numpy array containing ALS prediction
+    
+    user_features : ALS user features
+    
+    movie_features : ALS movie features
+    
+    n_features : Number of user_features and movie_features to be added to the DataFrame
+    
+    OUTPUT
+    data : DataFrame with ALS, user_features and movie_features added
+    
+    features : List of feature names to be used for further modelling
+    """
     categorical_variables = ["gender", "occupation"]
     for variable in categorical_variables:
         dummies = pd.get_dummies(data[variable], prefix=variable)
@@ -11,6 +34,7 @@ def alspostprocess(data, prediction, user_features, movie_features):
         data.drop([variable], axis=1, inplace=True)
     data['movieID'] = data['movieID'].astype('int')
     data['userID'] = data['userID'].astype('int')
+    
     features = [ u'timestamp', u'age',
            u'unknown', u'Action',
            u'Adventure', u'Animation', u'Childrens', u'Comedy', u'Crime',
@@ -26,9 +50,15 @@ def alspostprocess(data, prediction, user_features, movie_features):
            u'occupation_other', u'occupation_programmer', u'occupation_retired',
            u'occupation_salesman', u'occupation_scientist', u'occupation_student',
            u'occupation_technician', u'occupation_writer']
+
     data['ALS'] = prediction[data.loc[:, 'userID']-1, data.loc[:, 'movieID']-1]
     features.append('ALS')
-    for i in range(len(movie_features)):
+    
+    total_features = len(movie_features)
+    if n_features>total_features:
+        n_features = total_features
+        
+    for i in range(n_features):
         data["UserFeature{}".format(i)] = user_features[data.loc[:, 'userID']-1, i]
         features.append("UserFeature{}".format(i))
         data["MovieFeature{}".format(i)] = movie_features[i, data.loc[:, 'movieID']-1]
@@ -48,12 +78,23 @@ def alspreprocess(ratingData, test, train):
     test_mat = (csr_matrix((test_dat, (test_row, test_col)), shape=(n_m, n_u)).toarray()).T
     return test_mat, train_mat
 
-def als(train):
-	n_factors = 8
-	n_iterations = 15
-	lambda_ = 10
-	m, n = train.shape
-	Q = train
+def als(matrix, n_factors=8,n_iterations=15, lambda_=10):
+	"""
+     Carries out ALS decomposition of a given matrix and returns
+     the predicted matrix and the decomposed matrices X and Y
+     
+     INPUT
+     matrix : Numpy matrix to be decomposed
+     n_factors : Number of features for the decomposed matrices
+     lambda : Regularization factor
+     
+     OUTPUT
+     prediction : ALS predicted matrix i.e product of X.T and Y
+     X,Y : Decomposed matrices computed by ALS
+ 
+     """
+	m, n = matrix.shape
+	Q = matrix
 	W = Q > 0.5
 	W = W.astype(int)
 	print('X and Y randomly initialzied.')
