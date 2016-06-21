@@ -25,28 +25,46 @@ ratingData,movieData,userData = importData("/home/rsk/Documents/RecommenderProje
 
 data = pd.merge(ratingData,userData,how="left",on="userID")
 data = pd.merge(data,movieData,how="left",on="movieID")
-
+#%%
 data = cleanData(data)  #removes unneccesary rows and columns
 data = dateTime(data)
 
-data.head()
 
-#%%
+features = [ u'timestamp', u'age',
+           u'unknown', u'Action',
+           u'Adventure', u'Animation', u'Childrens', u'Comedy', u'Crime',
+           u'Documentary', u'Drama', u'Fantasy', u' Film-Noir', u'Horror',
+           u'Musical', u'Mystery', u'Romance', u'Sci-Fi', u'Thriller', u'War',
+           u'Western', u'year', u'month', u'day', u'hour', u'weekday',
+           u'releaseYear', u'yearDiff', u'gender_F', u'gender_M',
+           u'occupation_administrator', u'occupation_artist', u'occupation_doctor',
+           u'occupation_educator', u'occupation_engineer',
+           u'occupation_entertainment', u'occupation_executive',
+           u'occupation_healthcare', u'occupation_homemaker', u'occupation_lawyer',
+           u'occupation_librarian', u'occupation_marketing', u'occupation_none',
+           u'occupation_other', u'occupation_programmer', u'occupation_retired',
+           u'occupation_salesman', u'occupation_scientist', u'occupation_student',
+           u'occupation_technician', u'occupation_writer']
+
+#%%##### ALS #############
+
 print('Splitting data.')    
 train,test = train_test_split(data,test_size=0.2,random_state=1)
 test_mat, train_mat = alspreprocess(ratingData, test, train)
-#%%
+
 print('Running ALS.')
 prediction,user_features,movie_features = als(train_mat,n_factors = 8,n_iterations = 2, lambda_ = 10)
 testRMSE = RMSE_matrix(prediction, test_mat)
 trainRMSE = RMSE_matrix(prediction, train_mat)
 print "ALS\nTrain RMSE : %f  Test RMSE : %f"%(trainRMSE, testRMSE)
+
+data, features = alspostprocess(data, prediction, features, user_features, movie_features,n_features=4)
+
 #%%
 
 
-processedData, features = alspostprocess(data, prediction, user_features, movie_features,n_features=4)
-#%%
-train,test = train_test_split(processedData,test_size=0.2,random_state=1)
+           
+train,test = train_test_split(data,test_size=0.2,random_state=1)
 ytrain = train.pop('rating')
 ytest = test.pop('rating')
 

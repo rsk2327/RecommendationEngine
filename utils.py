@@ -3,7 +3,7 @@ import datetime
 import pandas as pd
 import numpy as np
 
-def alspostprocess(data, prediction, user_features, movie_features, n_features=10):
+def alspostprocess(data, prediction, features, user_features, movie_features, n_features=10):
     """
     Adds ALS values obtained from ALS decomposition of ratings matrix as
     feature to dataFrame.
@@ -27,29 +27,7 @@ def alspostprocess(data, prediction, user_features, movie_features, n_features=1
     
     features : List of feature names to be used for further modelling
     """
-    categorical_variables = ["gender", "occupation"]
-    for variable in categorical_variables:
-        dummies = pd.get_dummies(data[variable], prefix=variable)
-        data = pd.concat([data, dummies], axis=1)
-        data.drop([variable], axis=1, inplace=True)
-    data['movieID'] = data['movieID'].astype('int')
-    data['userID'] = data['userID'].astype('int')
     
-    features = [ u'timestamp', u'age',
-           u'unknown', u'Action',
-           u'Adventure', u'Animation', u'Childrens', u'Comedy', u'Crime',
-           u'Documentary', u'Drama', u'Fantasy', u' Film-Noir', u'Horror',
-           u'Musical', u'Mystery', u'Romance', u'Sci-Fi', u'Thriller', u'War',
-           u'Western', u'year', u'month', u'day', u'hour', u'weekday',
-           u'releaseYear', u'yearDiff', u'gender_F', u'gender_M',
-           u'occupation_administrator', u'occupation_artist', u'occupation_doctor',
-           u'occupation_educator', u'occupation_engineer',
-           u'occupation_entertainment', u'occupation_executive',
-           u'occupation_healthcare', u'occupation_homemaker', u'occupation_lawyer',
-           u'occupation_librarian', u'occupation_marketing', u'occupation_none',
-           u'occupation_other', u'occupation_programmer', u'occupation_retired',
-           u'occupation_salesman', u'occupation_scientist', u'occupation_student',
-           u'occupation_technician', u'occupation_writer']
 
     data['ALS'] = prediction[data.loc[:, 'userID']-1, data.loc[:, 'movieID']-1]
     features.append('ALS')
@@ -138,13 +116,23 @@ def cleanData(data):
     """
     Pre-process the data. Variable type changes, missing value removal etc.
     """
-    data = data.drop(data.index[[2172, 3781, 7245, 12475, 14756, 15292, 49295, 93523, 99723]],axis=0,inplace=False)
+    
+    indexes = data.index[pd.isnull(data["release date"])]
+#    data = data.drop(data.index[[2172, 3781, 7245, 12475, 14756, 15292, 49295, 93523, 99723]],axis=0,inplace=False)
+    data = data.drop(indexes,axis=0,inplace=False)
     data = data.drop(["video release date", 'IMDb URL'],axis=1)
     
-    data.userID = data.userID.astype("category")
-    data.movieID = data.movieID.astype("category")
+    
     data.gender = data.gender.astype("category")
     data.occupation = data.occupation.astype("category")
+    
+    categorical_variables = ["gender", "occupation"]
+    for variable in categorical_variables:
+        dummies = pd.get_dummies(data[variable], prefix=variable)
+        data = pd.concat([data, dummies], axis=1)
+        data.drop([variable], axis=1, inplace=True)
+    data['movieID'] = data['movieID'].astype('int')
+    data['userID'] = data['userID'].astype('int')
     
 	#data = dateTime(data)
     

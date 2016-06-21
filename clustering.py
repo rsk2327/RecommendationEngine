@@ -3,11 +3,11 @@ from sklearn.cluster import KMeans
 import numpy as np
 import matplotlib.pyplot as plt
 
-ratingData,movieData,userData = importData("/home/satvik/Analytics/Recommender Project/")
+ratingData,movieData,userData = importData("/home/rsk/Documents/RecommenderProject/")
 
 movieData = movieData.drop(["video release date", 'IMDb URL','movieID','movie title','release date','unknown'],axis=1)
 #%%
-num_clusters=4
+num_clusters=5
 clust = KMeans(n_clusters=num_clusters,max_iter=300,n_init=200,n_jobs=-1)
 clust = clust.fit_predict(movieData)
 
@@ -27,7 +27,7 @@ womenMeans = M[:,1]
 
 ind = np.arange(N)    # the x locations for the groups
 width = 0.35       # the width of the bars: can also be len(x) sequence
-colors = ['b','g','r','c','m','y','k','paleturquoise','purple','salmon','seashell','tan'
+colors = ['b','g','r','c','m','y','k','paleturquoise','purple','salmon','seashell','tan',
             'navy','palegreen','orange','lime','olive','orangered']
 p=[]
 
@@ -36,7 +36,7 @@ for i in range(18):
         p.append(plt.bar(ind, M[:,i], width,color=colors[i]))
     else:
         p.append(plt.bar(ind, M[:,i], width,bottom= M[:,i-1],color=colors[i]))
-
+#%%
 plt.ylabel('movies')
 plt.title('cluster vs genre')
 plt.xticks(ind + width/2., ('C0','C1','C2','C4'))
