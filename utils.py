@@ -112,24 +112,24 @@ def als(matrix, n_factors=8,n_iterations=15, lambda_=10):
 	print('Done.')
 	return prediction, X, Y
 
-def importData(dataDir=''):
+def importData(dataDir='',dataset= "ml-100k"):
     """
     Imports u.data, u.item and u.user and returns it in DataFrame format
     as ratingData, movieData and userData
     """
-    ratingData = pd.read_table(dataDir+"ml-100k/u.data",sep="\t",header=None)
+    ratingData = pd.read_table(dataDir+dataset+"/u.data",sep="\t",header=None)
     ratingData.columns=['userID','movieID','rating','timestamp']
     ratingData['userID'] = ratingData['userID'].astype("category")            #converting into categorical variables
     ratingData['movieID'] = ratingData['movieID'].astype('category')
 
-    movieData = pd.read_table(dataDir+"ml-100k/u.item",sep="|",header=None)
+    movieData = pd.read_table(dataDir+dataset+"/u.item",sep="|",header=None)
     movieData.columns = ['movieID', 'movie title' , 'release date' , 'video release date' ,
               'IMDb URL' , 'unknown' , 'Action' , 'Adventure' , 'Animation' ,
               'Childrens' , 'Comedy' , 'Crime' , 'Documentary' , 'Drama' , 'Fantasy' ,
              ' Film-Noir' , 'Horror' , 'Musical' , 'Mystery' , 'Romance' , 'Sci-Fi' ,
               'Thriller' , 'War' , 'Western']
               
-    userData = pd.read_table(dataDir+"ml-100k/u.user",sep="|",header=None)
+    userData = pd.read_table(dataDir+dataset+"/u.user",sep="|",header=None)
     userData.columns=['userID','age','gender','occupation','zipcode']
     
     return (ratingData,movieData,userData)
