@@ -3,6 +3,18 @@ import datetime
 import pandas as pd
 import numpy as np
 
+def als_recommend(user_row, Y):
+	""" Returns a sorted list of recommendations of movies and the predicted row of ratings """
+	Wu = (user_row > 0).astype(int)
+	lambda_ = 10
+	n_factors = len(Y)
+	Xu = np.linalg.solve(np.dot(Y, np.dot(np.diag(Wu), Y.T)) + lambda_ * np.eye(n_factors),
+	                                np.dot(Y, np.dot(np.diag(Wu), user_row.T))).T
+	predicted_row = np.dot(Xu, Y)
+	recommendations = np.argsort(-np.multiply(predicted_row, (1 - Wu)))
+	# Print the names?
+	return predicted_row, recommendations
+
 def alspostprocess(data, prediction, features, user_features, movie_features, n_features=10):
     """
     Adds ALS values obtained from ALS decomposition of ratings matrix as
@@ -118,7 +130,7 @@ def cleanData(data):
     """
     
     indexes = data.index[pd.isnull(data["release date"])]
-#    data = data.drop(data.index[[2172, 3781, 7245, 12475, 14756, 15292, 49295, 93523, 99723]],axis=0,inplace=False)
+    # data = data.drop(data.index[[2172, 3781, 7245, 12475, 14756, 15292, 49295, 93523, 99723]],axis=0,inplace=False)
     data = data.drop(indexes,axis=0,inplace=False)
     data = data.drop(["video release date", 'IMDb URL'],axis=1)
     
