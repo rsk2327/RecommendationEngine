@@ -45,6 +45,29 @@ RMSE = RMSE_matrix(mat,predictedR)
 #%%
 
 def alsPred(matrix=None, sparseness = 0.3, method="lsnmf",n_features=5,n_iterations=30, low=1, high=5):
+    """
+    Decomposes a given matrix using the specified ALS algorithm. 
+    Instead of the matrix, dimensions can be given to create a random 
+    matrix of specified sparseness.
+    
+    INPUTS
+    matrix : Can be either a 2-D numpy array or a tuple of size 2
+    specifying the matrix dimensions
+    
+    sparseness : Determines the sparseness of the random matrix
+    to be generated
+                  
+    method : Specifies the ALS algorithm variation
+    "lsnmf" for Lsnmf model implemented in Nimfa package
+    "wr" for ALS-WR
+    
+    n_features : Number of features of the decomposed matrices
+    
+    n_iterations : Number of iterations for the ALS algorithm
+    
+    low, high : Minimum and maximum values for filling the random matrix
+    
+    """
     
     #generate a random matrix if matrix is not specified
     if isinstance(matrix,tuple) and len(matrix)==2:
