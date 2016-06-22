@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 ratingData,movieData,userData = importData("/home/rsk/Documents/RecommenderProject/")
 
 movieData = movieData.drop(["video release date", 'IMDb URL','movieID','movie title','release date','unknown'],axis=1)
-#%%
+
+#%%#### CLUSTERING ON MOVIES ###########################
 num_clusters=5
 clust = KMeans(n_clusters=num_clusters,max_iter=300,n_init=200,n_jobs=-1)
 clust = clust.fit_predict(movieData)
@@ -44,3 +45,7 @@ plt.yticks(np.arange(0, 700, 100))
 lgd=plt.legend( colnames,loc = 'center left', bbox_to_anchor = (1,0.5))
 
 plt.savefig('clustergenre.png', dpi=300, format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
+
+
+
+#%%#####  CLUSTERING ON USERS ############################
