@@ -3,7 +3,7 @@ from sklearn.cluster import KMeans
 import numpy as np
 import matplotlib.pyplot as plt
 
-ratingData,movieData,userData = importData("/home/rsk/Documents/RecommenderProject/")
+ratingData,movieData,userData = importData("/home/satvik/Analytics/Recommender Project/")
 
 movieData = movieData.drop(["video release date", 'IMDb URL','movieID','movie title','release date','unknown'],axis=1)
 #%%
@@ -22,8 +22,6 @@ M = M[:,0:18]
 colnames = movieData.columns.values[0:18]
 #%%
 N = num_clusters
-menMeans = M[:,0]
-womenMeans = M[:,1]
 
 ind = np.arange(N)    # the x locations for the groups
 width = 0.35       # the width of the bars: can also be len(x) sequence
@@ -39,7 +37,7 @@ for i in range(18):
 #%%
 plt.ylabel('movies')
 plt.title('cluster vs genre')
-plt.xticks(ind + width/2., ('C0','C1','C2','C4'))
+plt.xticks(ind + width/2., ['C'+s for s in np.array(np.arange(num_clusters),dtype='|S1')])
 plt.yticks(np.arange(0, 700, 100))
 lgd=plt.legend( colnames,loc = 'center left', bbox_to_anchor = (1,0.5))
 
