@@ -12,36 +12,36 @@ from scipy.sparse import csr_matrix
 import nimfa as nf
 
 
-mat=np.array([[2.0,3.0,0.0,0.0,5.0],
-              [1.0,0.0,0.0,4.0,2.0],
-                [4.0,2.0,0.0,4.0,1.0],
-                [1.0,0.0,2.0,0.0,4.0],
-                [4.0,5.0,3.0,0.0,0.0]])
-                
-#%%
-
-m,n = mat.shape
-W = (mat>0.5).astype("int")
-
-sparseR = csr_matrix(mat)
-
-#%%
-als = nf.Lsnmf(sparseR,seed="random_vcol",rank=4,max_iter=30,beta=0.5)
-als_fit = als.factorize()
-
-u = als_fit.basis()
-m = als_fit.coef()
-
-
-
-predictedR = np.array(np.dot(u.todense(), m.todense()))
-
-for i in range(predictedR.shape[0]):
-    for j in range(predictedR.shape[1]):
-        predictedR[i][j] = round(predictedR[i][j],2)
+#mat=np.array([[2.0,3.0,0.0,0.0,5.0],
+#              [1.0,0.0,0.0,4.0,2.0],
+#                [4.0,2.0,0.0,4.0,1.0],
+#                [1.0,0.0,2.0,0.0,4.0],
+#                [4.0,5.0,3.0,0.0,0.0]])
+#                
+##%%
+#
+#m,n = mat.shape
+#W = (mat>0.5).astype("int")
+#
+#sparseR = csr_matrix(mat)
+#
+##%%
+#als = nf.Lsnmf(sparseR,seed="random_vcol",rank=4,max_iter=30,beta=0.5)
+#als_fit = als.factorize()
+#
+#u = als_fit.basis()
+#m = als_fit.coef()
+#
+#
+#
+#predictedR = np.array(np.dot(u.todense(), m.todense()))
+#
+#for i in range(predictedR.shape[0]):
+#    for j in range(predictedR.shape[1]):
+#        predictedR[i][j] = round(predictedR[i][j],2)
         
 #%%
-RMSE = RMSE_matrix(mat,predictedR)
+
 #%%
 
 def alsPred(matrix=None, sparseness = 0.3, method="lsnmf",n_features=5,n_iterations=30, low=1, high=5):
