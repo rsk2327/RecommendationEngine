@@ -69,3 +69,13 @@ y= np.array(dataset[1])
 
 p = ggplot(dataset, aes(x=0,y=1,z=2,color="cluster")) +geom_point() +ggtitle("User clusters")
 print p
+
+#%%
+
+
+from sklearn.neighbors import NearestNeighbors
+neighborModel = NearestNeighbors()
+nearestNeighbors = neighborModel.fit(X=user_features)
+nearest= nearestNeighbors.kneighbors(user_features,return_distance=False)
+
+
