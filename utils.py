@@ -2,6 +2,46 @@ from scipy.sparse import csr_matrix
 import datetime
 import pandas as pd
 import numpy as np
+import os.path as op
+
+class collab_filter(object):
+    def __init__(self):
+        pass
+
+    def fit(self, train, neighbours=-1):
+        if neighbours==-1:
+            neighbours = len(train)-1
+        self.train = train
+        print('\nRunning collaborative filtering...')
+        if op.isfile('Distance_Matrix.npy'):
+            self.euclidean = np.load('Distance_Matrix.npy')
+        else:
+            euclidean = distance.cdist(train, train, 'euclidean')
+            euclidean = 1.0/euclidean
+            euclidean[np.isinf(euclidean)] = 0
+            self.euclidean = euclidean
+            np.save('Distance_Matrix.npy', euclidean)
+        print('Filling out other ratings...')
+        prediction = np.zeros(train.shape)
+        for i in range(len(self.euclidean)):
+            if i%200==0:
+                print('{}% of ratings matrix populated.'.format(100*i/len(self.euclidean)))
+            mask = np.ones((len(train),), dtype=bool)
+            sim = np.argsort(-self.euclidean[i])
+            cut_off = self.euclidean[i, sim[neighbours]]
+            mask[i] = False
+            weights = self.euclidean[i][mask]
+            weights[weights<cut_off]=0
+            other_ratings = train[mask]
+            weights = repmat(weights, len(train.T), 1).T
+            weights = np.multiply(weights, train[mask] > 0)
+            user_ratings = np.sum(np.multiply(weights, other_ratings), axis=0)/np.sum(weights, axis=0)
+            prediction[i] = user_ratings
+        prediction[np.isnan(prediction)] = np.mean(train)
+        self.prediction = prediction
+
+    def predict(self):
+        return self.prediction
 
 def als_recommend(user_row, Y):
 	""" Returns a sorted list of recommendations of movies and the predicted row of ratings """
