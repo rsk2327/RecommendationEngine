@@ -52,6 +52,14 @@ print('Splitting data.')
 train,test = train_test_split(data,test_size=0.2,random_state=1)
 test_mat, train_mat = alspreprocess(ratingData, test, train)
 
+print('Running Collaborative filtering...')
+colfi = collab_filter()
+colfi.fit(train_mat.T)
+prediction = colfi.predict().T
+testRMSE = RMSE_matrix(prediction, test_mat)
+trainRMSE = RMSE_matrix(prediction, train_mat)
+print "Item Based \nTrain RMSE : %f  Test RMSE : %f"%(trainRMSE, testRMSE)
+
 print('Running ALS.')
 prediction,user_features,movie_features = als(train_mat,n_factors = 8,n_iterations = 2, lambda_ = 10)
 testRMSE = RMSE_matrix(prediction, test_mat)
