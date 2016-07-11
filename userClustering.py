@@ -17,6 +17,9 @@ from sklearn.ensemble import RandomForestRegressor
 import xgboost as xgb
 import pylab
 from compALS import *
+from collections import Counter
+from sklearn.neighbors import NearestNeighbors
+
 
 print('Importing data.')
 ratingData,movieData,userData = importData("/home/rsk/Documents/RecommenderProject/")
@@ -45,37 +48,65 @@ als_fit= als.factorize()
 
 user_features = np.array(als_fit.basis().todense())
 movie_features = np.array(als_fit.coef().todense())
-#%%
 
 dataset = pd.DataFrame(user_features)
+
+###################%% CLUSTERING #####################################
+
 
 from sklearn.cluster import KMeans
 num_clusters=2
 clust = KMeans(n_clusters=num_clusters,max_iter=300,n_init=200,n_jobs=-1)
 clust = clust.fit_predict(dataset)
-#%%
+
 dataset["cluster"] = (clust+1.0).astype("int")
 dataset["ID"] = list(range(1,944))
 dataset["gender"] = userData["gender"]
 dataset["occupation"] = userData["occupation"]
 
-
-#PLOTTING
-
+#Plotting
 from ggplot import *
 x= np.array(dataset[0])
 y= np.array(dataset[1])
 
-
 p = ggplot(dataset, aes(x=0,y=1,z=2,color="cluster")) +geom_point() +ggtitle("User clusters")
 print p
 
+
+
+
+
+######%%  COLLABORATIVE RECOMMENDATION ######################### 
+
+
+def getRecommendations_user(userID,user_features, neighborCount=10,neighborMovieCount=10,moviesToRecommend=10,returnCount = False):
+    
+    neighborModel = NearestNeighbors()
+    nearestNeighbors = neighborModel.fit(X=user_features)
+    nearest= nearestNeighbors.kneighbors(user_features,n_neighbors=neighborCount,return_distance=False)[:,1:neighborCount]
+    nearestNeighborList = nearest[userID]
+    
+    
+    movieList = []
+    for i in range(len(nearestNeighborList)):
+        user = nearestNeighborList[i]
+        userRatingData = data[data['userID']==user][['userID','movieID','rating']].sort_values('rating',ascending=False)
+        movieList+=list(userRatingData[:neighborMovieCount]['movieID'].values)
+    
+    movieList = Counter(movieList)
+    
+    recommendList = []
+    movieCountList = movieList.most_common(moviesToRecommend)
+    for i in range(moviesToRecommend):
+        recommendList.append( movieData[movieData['movieID']==movieCountList[i][0]]['movie title'].values[0] )
+        
+    return recommendList
+   
+        
+
+
+
+
 #%%
 
-
-from sklearn.neighbors import NearestNeighbors
-neighborModel = NearestNeighbors()
-nearestNeighbors = neighborModel.fit(X=user_features)
-nearest= nearestNeighbors.kneighbors(user_features,return_distance=False)
-
-
+w= getRecommendations_user(2,user_features,10,15,10)
