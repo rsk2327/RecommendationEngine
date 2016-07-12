@@ -76,10 +76,31 @@ print p
 
 
 
-######%%  COLLABORATIVE RECOMMENDATION ######################### 
+##### #%%  COLLABORATIVE RECOMMENDATION ######################### 
 
 
 def getRecommendations_user(userID,user_features, neighborCount=10,neighborMovieCount=10,moviesToRecommend=10,returnCount = False):
+    """
+    Uses collaborative filtering to make recommendations for a specific user. 
+    The function finds the closest neighbors to the given user and then take their highest rated movies.
+    A simple frequency count of the the movies is used to make recommendations
+    
+    INPUT
+    
+    userID : ID of the user for whom the recommendations are to be made
+    
+    user_features : Feature vectors for all users in the dataset
+    
+    neighborCount : Number of closest neighbors to be considered while making recommendations
+    
+    neighborMovieCount : Number of movies to be considered from each of the selected neighbors.
+                         The top higheset rated movies by the neighbors are considered for recommendations
+                         
+    moviesToRecommend : Number of movies to recommend to the user
+    
+    returnCount : Whether to return the counts of the recommended movies
+    
+    """
     
     neighborModel = NearestNeighbors()
     nearestNeighbors = neighborModel.fit(X=user_features)
@@ -102,11 +123,26 @@ def getRecommendations_user(userID,user_features, neighborCount=10,neighborMovie
         
     return recommendList
    
-        
 
+def getTopMovies(userID,count):
+    
+    return data[data['userID']==1].sort_values('rating',ascending=False)['movie title'][:count].values
+    
+    
+def compareResults(list1,list2):
+    
+    count = 0
+    
+    for i in range(len(list1)):
+        if list1[i] in list2:
+            count += 1
+            
+    return count
 
 
 
 #%%
 
-w= getRecommendations_user(2,user_features,10,15,10)
+w= getRecommendations_user(1,user_features,25,55,50)
+w2 = getTopMovies(1,50)
+compareResults(w,w2)
