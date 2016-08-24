@@ -28,7 +28,7 @@ data = dateTime(data)
 data_sub = data[['userID','movieID','rating']]
 
 pivot = data_sub.pivot_table('rating','userID','movieID')
-pivot=pivot.fillna(0)
+pivot=pivot.fillna(0)                             #pivot is matrix of ratings with users as rows as movies as columns
 #%%
 
 neighborModel = NearestNeighbors()
