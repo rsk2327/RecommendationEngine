@@ -6,6 +6,7 @@ Created on Wed Jun 22 20:00:34 2016
 """
 
 import os
+os.chdir("/home/rsk/Documents/RecommenderProject/RecommendationEngine/python")
 import pandas as pd
 import numpy as np
 import datetime
@@ -51,7 +52,7 @@ movie_features = np.array(als_fit.coef().todense())
 
 dataset = pd.DataFrame(user_features)
 
-###################%% CLUSTERING #####################################
+#%% ###################%% CLUSTERING #####################################
 
 
 from sklearn.cluster import KMeans
@@ -76,10 +77,11 @@ print p
 
 
 
-##### #%%  COLLABORATIVE RECOMMENDATION ######################### 
+#%%  COLLABORATIVE RECOMMENDATION ######################### 
 
 
-def getRecommendations_user(userID,user_features, neighborCount=10,neighborMovieCount=10,moviesToRecommend=10,returnCount = False):
+def getRecommendations_user(userID,user_features, neighborCount=10,neighborMovieCount=10,moviesToRecommend=10,returnCount = False,
+                            returnWatched=True):
     """
     Uses collaborative filtering to make recommendations for a specific user. 
     The function finds the closest neighbors to the given user and then take their highest rated movies.
@@ -100,6 +102,9 @@ def getRecommendations_user(userID,user_features, neighborCount=10,neighborMovie
     
     returnCount : Whether to return the counts of the recommended movies
     
+    returnWatched : Whether movies watched by the user should be recommended. If false, only movies not watched by the user
+    are considered
+    
     """
     
     neighborModel = NearestNeighbors()
@@ -108,25 +113,35 @@ def getRecommendations_user(userID,user_features, neighborCount=10,neighborMovie
     nearestNeighborList = nearest[userID]
     
     
+    watchedMovies = data[data['userID']==userID][['movieID']].values
+    
     movieList = []
     for i in range(len(nearestNeighborList)):
         user = nearestNeighborList[i]
         userRatingData = data[data['userID']==user][['userID','movieID','rating']].sort_values('rating',ascending=False)
+        if returnWatched==False:
+            userRatingData = userRatingData[ [not i in watchedMovies for i in userRatingData['movieID'].values] ]
         movieList+=list(userRatingData[:neighborMovieCount]['movieID'].values)
     
+        
+                
     movieList = Counter(movieList)
     
     recommendList = []
     movieCountList = movieList.most_common(moviesToRecommend)
-    for i in range(moviesToRecommend):
-        recommendList.append( movieData[movieData['movieID']==movieCountList[i][0]]['movie title'].values[0] )
+    if returnCount==False:
+        for i in range(moviesToRecommend):
+            recommendList.append( movieData[movieData['movieID']==movieCountList[i][0]]['movie title'].values[0] )
+    else:
+        for i in range(moviesToRecommend):
+            recommendList.append( movieData[movieData['movieID']==movieCountList[i][0]]['movie title'].values[0], movieCountList[i][1] )
         
     return recommendList
    
 
 def getTopMovies(userID,count):
     
-    return data[data['userID']==1].sort_values('rating',ascending=False)['movie title'][:count].values
+    return data[data['userID']==userID].sort_values('rating',ascending=False)['movie title'][:count].values
     
     
 def compareResults(list1,list2):
@@ -142,7 +157,16 @@ def compareResults(list1,list2):
 
 
 #%%
-
-w= getRecommendations_user(1,user_features,25,55,50)
+w= getRecommendations_user(1,user_features,25,55,50,False,returnWatched = False)
 w2 = getTopMovies(1,50)
+compareResults(w,w2)
+
+#%%
+w= getRecommendations_user(1,user_features,25,55,50,False,returnWatched =True)
+w2 = getTopMovies(1,50)
+compareResults(w,w2)
+
+#%%
+w= getRecommendations_user(3,user_features,25,10,50,False,returnWatched =True)
+w2 = getTopMovies(3,50)
 compareResults(w,w2)
